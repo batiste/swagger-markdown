@@ -58,8 +58,9 @@ class SwaggerLineHandler():
         self.definitionNames = definitionNames
 
     # Typical input
-    # :swg: swagger.json AccessibilityProperties
-    # :swg: AccessibilityProperties
+    # :swg-def: swagger.json AccessibilityProperties
+    # :swg-def: AccessibilityProperties
+    # :swg-path: /my-project"
     def handleLine(self, line):
         content = line.split(' ')
         file = content[1]

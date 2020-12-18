@@ -53,5 +53,51 @@
       ],
       "type": "object"
     }
+  },
+  "paths": {
+    "/my-project": {
+      "post": {
+        "operationId": "my_projects.search_projects",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "my_projects_request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MyProjectsRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/MyProjectsResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "404": {
+            "description": "Not found. Try to change your criteria."
+          },
+          "default": {
+            "description": "Unexpected error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        },
+        "summary": "My Projects endpoint",
+        "tags": [
+          "My Projects"
+        ],
+        "x-is-public": true,
+        "x-scopes": [
+          "search_my_projects"
+        ],
+        "x-supports-projects-restriction": true
+      }
+    }
   }
 }
