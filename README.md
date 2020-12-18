@@ -1,7 +1,7 @@
 # swagger-markdown
 
-A Python Markdown extension to include Swagger definition in your markdown documentation
-This extension work with Swagger 2.0 JSON files. To install:
+A Python Markdown extension to include Swagger definition in your markdown documentation.
+This extension works with Swagger 2.0 JSON files. To install:
 
 
 ```bash
@@ -26,6 +26,15 @@ Or more simply
 import markdown
 
 markdown.markdown('some markdown', extensions=['swaggermarkdown']))
+```
+
+## Configuration
+
+```python
+SwaggerExtension(
+  definitionsUrlRoot='/types',  # add an url in front of definition links
+  file='test_swagger.json'      # redefine the default file (default: swagger.json)
+)
 ```
 
 ## How to use with MkDocs
