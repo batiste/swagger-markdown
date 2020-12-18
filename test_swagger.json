@@ -1,0 +1,57 @@
+{
+  "basePath": "/api/v1",
+  "consumes": [
+    "application/json"
+  ],
+  "definitions": {
+    "FirstDefinition": {
+      "properties": {
+        "test": {
+          "$ref": "#/definitions/test"
+        },
+        "name": {
+          "example": "hello world",
+          "type": "string"
+        },
+        "year": {
+          "example": "Some example text",
+          "maximum": 2050,
+          "minimum": 1999,
+          "type": "integer",
+          "x-field-name": "fromYear"
+        },
+        "anArrayOfStrings": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 123,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "anArrayOfDef": {
+          "items": {
+            "$ref": "#/definitions/another"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "year"
+      ],
+      "type": "object"
+    },
+    "SecondDefinition": {
+      "properties": {
+        "name": {
+          "example": "another def",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    }
+  }
+}
