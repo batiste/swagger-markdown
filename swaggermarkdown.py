@@ -22,19 +22,6 @@ def labelValue(out, content, label):
     if value:
         out.append(f'<span class="sw-label">{label}:</span> <span class="sw-value">{value}</span>')
 
-def makeDetails(content):
-    out = []
-    labelValue(out, content, 'description')
-    labelValue(out, content, 'example')
-    
-    labelValue(out, content, 'minimum')
-    labelValue(out, content, 'maximum')
-
-    labelValue(out, content, 'minItems')
-    labelValue(out, content, 'maxItems')
-
-    return '<br>'.join(out)
-
 def pathRepr(path, required):
     out = []
     for p in path[1:]:
@@ -56,6 +43,11 @@ class SwaggerLineHandler():
         self.definitionsUrl = definitionsUrl
         self.definitionName = None
         self.definitionNames = definitionNames
+
+        self.defaultDetailsField = ['description', 'example', 'maximum', 'minimum',
+            'minItems', 'maxItems', 'uniqueItems', 'exclusiveMinimum', 'minLength',
+            'maxLength', 'multipleOf', 'readOnly', 'writeOnly', 'minProperties', 
+            'maxProperties']
 
     # Typical input
     # :swg-def: swagger.json AccessibilityProperties
@@ -83,9 +75,19 @@ class SwaggerLineHandler():
             self.addTableLine([defname], body, name, content, required)
         return makeTable(body=''.join(body), id=defname)
 
+    def makeDetails(self, content):
+        out = []
+        for detail in self.defaultDetailsField:
+            labelValue(out, content, detail)
+
+        return '<br>'.join(out)
+
     def makeContentType(self, content):
         t = content.get('type')
         if t:
+            f = content.get('format')
+            if f:
+                return f'{t} {f}'
             return t
         ref = content.get('$ref')
         if ref:
@@ -100,7 +102,7 @@ class SwaggerLineHandler():
 
     def addTableLine(self, path, body, name, content, required=[]):
         ctype = self.makeContentType(content)
-        details = makeDetails(content)
+        details = self.makeDetails(content)
         ctypeOut = ctype
 
         items = content.get('items')
@@ -109,7 +111,7 @@ class SwaggerLineHandler():
             if items.get('$ref'):
                 ctypeOut = f'array of {self.makeContentType(items)}'
             elif items.get('type'):
-                ctypeOut = f'array of {items.get("type")}'
+                ctypeOut = f'array of {self.makeContentType(items)}'
             else:
                 ctypeOut = 'array of object'
 
@@ -125,7 +127,7 @@ class SwaggerLineHandler():
             for n, c in content['properties'].items():
                 self.addTableLine(newPath, body, n, c, required)
 
-        if ctype == 'array' and items and not items.get('$ref'):
+        if ctype == 'array' and items and not items.get('$ref') and items.get("type") == 'object':
             self.addTableLine(newPath, body, '[0]', content.get('items'), required)
 
 

@@ -6,8 +6,8 @@
   "definitions": {
     "FirstDefinition": {
       "properties": {
-        "test": {
-          "$ref": "#/definitions/test"
+        "aReference": {
+          "$ref": "#/definitions/SecondDefinition"
         },
         "name": {
           "example": "hello world",
@@ -18,26 +18,49 @@
           "maximum": 2050,
           "minimum": 1999,
           "type": "integer",
+          "format": "int32",
           "x-field-name": "fromYear"
         },
-        "anArrayOfStrings": {
+        "arrayOfStrings": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "minItems": 123,
           "type": "array",
           "uniqueItems": true
         },
-        "anArrayOfDef": {
+        "arrayOfDef": {
           "items": {
-            "$ref": "#/definitions/another"
+            "$ref": "#/definitions/SecondDefinition"
           },
-          "type": "array"
+          "type": "array",
+          "maxItems": 50
+        },
+        "arrayOfObject": {
+          "items": {
+            "properties": {
+              "id": {
+                "example": 2,
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "type": "object"
+          },
+          "type": "array",
+          "description": "An array of object"
         }
       },
       "required": [
         "name",
-        "year"
+        "year",
+        "arrayOfObject"
       ],
       "type": "object"
     },
@@ -55,6 +78,26 @@
     }
   },
   "paths": {
+    "/users/{userId}": {
+      "get": {
+        "summary": "Returns a user by ID.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "type": "integer",
+            "minimum": 1,
+            "description": "Parameter description in Markdown."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/my-project": {
       "post": {
         "operationId": "my_projects.search_projects",
