@@ -44,14 +44,23 @@ markdown_extensions:
   - swaggermarkdown
 ```
 
-## In your markdown file
+## How to use in your markdown files
 
 ```markdown
 ## My Nice API Response
 
+### My first api definition
+
 :swg: swaggerFile.json FirstDefinition
+
+### Some other definition
+
 :swg: SomeOtherDefinition
 ```
+
+You should get a table similar to this
+
+ <img src="/swaggermarkdown.png" width="700">
 
 
 
