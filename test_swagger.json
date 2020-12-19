@@ -83,12 +83,64 @@
         "summary": "Returns a user by ID.",
         "parameters": [
           {
-            "in": "path",
+            "in": "query",
             "name": "userId",
             "required": true,
-            "type": "integer",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
             "minimum": 1,
             "description": "Parameter description in Markdown."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a user.",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Name of the user."
+          },
+          {
+            "in": "body",
+            "name": "email",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "email"
+            },
+            "description": "Email of the user."
+          },
+          {
+            "in": "body",
+            "name": "password",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "password"
+            },
+            "description": "Password of the user."
+          },
+          {
+            "schema": {
+              "$ref": "#/definitions/Friends"
+            },
+            "in": "body",
+            "name": "friends",
+            "required": false,
+            "description": "Friends list."
           }
         ],
         "responses": {

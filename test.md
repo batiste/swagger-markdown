@@ -1,10 +1,13 @@
 
+## Path /users/{userId}
+
+:swg-path: test_swagger.json /users/{userId}
 
 ## FirstDefinition
 
-:swg: test_swagger.json FirstDefinition
-    year: Some extra comment
+:swg-def: test_swagger.json FirstDefinition
 
 ## SecondDefinition
 
-:swg: test_swagger.json SecondDefinition
+:swg-def: test_swagger.json SecondDefinition
+

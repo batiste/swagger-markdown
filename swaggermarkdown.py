@@ -10,13 +10,6 @@ import json
 import re
 
 
-def makeTable(body, id):
-    return f"""<table id="/definitions/{id}">
-    <thead><tr><th>Name</th><th>Type</th><th>Details</th></tr></thead>
-    <tbody>{body}</tbody>
-    </table>
-    """
-
 def labelValue(out, content, label):
     value = content.get(label) or ''
     if value:
@@ -36,7 +29,7 @@ def idRepr(path):
     return '.'.join(path)
 
 
-class SwaggerLineHandler():
+class SwaggerDefinition():
 
     def __init__(self, file=None, definitionsUrl='', definitionNames=[]):
         self.defaultFile = file
@@ -50,8 +43,8 @@ class SwaggerLineHandler():
             'maxProperties']
 
     # Typical input
-    # :swg-def: swagger.json AccessibilityProperties
-    # :swg-def: AccessibilityProperties
+    # :swg-def:  swagger.json AccessibilityProperties
+    # :swg-def:  AccessibilityProperties
     # :swg-path: /my-project"
     def handleLine(self, line):
         content = line.split(' ')
@@ -67,13 +60,20 @@ class SwaggerLineHandler():
             definition = defs[self.definitionName]
             return self.definitionTable(definition, self.definitionName)
 
+    def table(self, body, id):
+        return f"""<table class="sw-table" id="/definitions/{id}">
+        <thead><tr><th>Name</th><th>Type</th><th>Details</th></tr></thead>
+        <tbody>{body}</tbody>
+        </table>
+        """
+
     def definitionTable(self, definition, defname):
         body = []
         required = definition.get('required', [])
         properties = definition.get('properties', {})
         for name, content in properties.items():
             self.addTableLine([defname], body, name, content, required)
-        return makeTable(body=''.join(body), id=defname)
+        return self.table(body=''.join(body), id=defname)
 
     def makeDetails(self, content):
         out = []
@@ -131,6 +131,91 @@ class SwaggerLineHandler():
             self.addTableLine(newPath, body, '[0]', content.get('items'), required)
 
 
+class SwaggerPath():
+
+    def __init__(self, file=None):
+        self.defaultFile = file
+        self.defaultDetailsField = ['description', 'example', 'maximum', 'minimum',
+            'minItems', 'maxItems', 'uniqueItems', 'exclusiveMinimum', 'minLength',
+            'maxLength', 'multipleOf', 'readOnly', 'writeOnly', 'minProperties', 
+            'maxProperties', 'in']
+
+    # Typical input
+    # :swg-path: /my-project"
+    # :swg-path: test_swagger.json /users/{userId}
+    def handleLine(self, line):
+        content = line.split(' ')
+        file = content[1]
+        if not file.endswith('.json'):
+          file = self.defaultFile
+
+        self.path = content[-1]
+
+        with open(file) as json_file:
+            data = json.load(json_file)
+            pathDef = data['paths'][self.path]
+            return self.pathRepr(pathDef)
+
+    def pathRepr(self, pathDef):
+        out = []
+        verbs = pathDef.keys()
+        for verb in verbs:
+            out.append(f'''<p class="sw-path">
+                <span class="sw-verb">{verb.upper()}</span>
+                <span class="sw-path">{self.path}</span></p>''')
+            verbDef = pathDef[verb]
+            summary = verbDef.get('summary')
+            out.append(f'''<p class="sw-summary">{summary}</p>''')
+            parameters = verbDef.get('parameters')
+            out.append(self.parameters(parameters))
+
+        return '\n'.join(out)
+
+    def parametersTable(self, body):
+        return f"""<table class="sw-table" id="/paths/{self.path}/parameters">
+        <caption>Parameters</caption>
+        <thead><tr><th>Name</th><th>Type</th><th>Details</th></tr></thead>
+        <tbody>{body}</tbody>
+        </table>
+        """
+
+    def makeContentType(self, schema):
+        if not schema:
+            return ''
+        t = schema.get('type')
+        if t:
+            f = schema.get('format')
+            if f:
+                return f'{t} {f}'
+            return t
+        ref = schema.get('$ref')
+        if ref:
+            url = f'{ref}'
+            bits = ref.split('/')
+            name = bits[len(bits) - 1]
+            return f'<a href="{url}">{name}</a>'
+
+    def makeDetails(self, content):
+        out = []
+        for detail in self.defaultDetailsField:
+            labelValue(out, content, detail)
+
+        return '<br>'.join(out)
+
+    def parameters(self, parameters):
+        out = []
+        for p in parameters:
+            name = p.get('name')
+            schema = p.get('schema')
+            outName = f'<strong>{name}</strong>' if p['required'] else name
+            out.append(f'''<tr>
+                <td>{outName}</td>
+                <td>{self.makeContentType(schema)}</td>
+                <td>{self.makeDetails(p)}</td>
+            </tr>''')
+    
+        return self.parametersTable(''.join(out))
+
 class SwaggerPreprocessor(Preprocessor):
     """Swagger include Preprocessor"""
 
@@ -143,14 +228,17 @@ class SwaggerPreprocessor(Preprocessor):
     def run(self, lines):
         out = []
         for line in lines:
-            if line.startswith(':swg: '):
-              handler = SwaggerLineHandler(
+            if line.startswith(':swg-def: '):
+              handler = SwaggerDefinition(
                 file=self.defaultFile, 
                 definitionsUrl=self.definitionsUrl,
                 definitionNames=self.definitionNames
               )
               out = out + handler.handleLine(line).split("\n")
               self.definitionNames.append(handler.definitionName)
+            elif line.startswith(':swg-path: '):
+              handler = SwaggerPath(file=self.defaultFile)
+              out = out + handler.handleLine(line).split("\n")
             else:
               out.append(line)
 

@@ -8,22 +8,28 @@ style = '''
     font-size: 16px;
     font-family: sans-serif;
   }
-  table {
+  .sw-table {
     border-collapse: collapse;
-    margin: 30px;
     min-width: 400px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    margin-bottom: 40px;
   }
   th,
   td {
       padding: 12px 15px;
   }
   tbody tr {
-    border-bottom: 1px solid #dddddd;
+    border-bottom: 1px solid #ddd;
+  }
+  th {
+    border-bottom: 2px solid #ccc;
   }
 
   tbody tr:nth-of-type(even) {
       background-color: #f3f3f3;
+  }
+  .sw-table caption {
+    padding-bottom: 6px;
   }
 
   .sw-label {
@@ -31,6 +37,12 @@ style = '''
     display: inline-block;
     min-width: 80px;
     text-align: right;
+  }
+  .sw-verb {
+    padding: 4px 8px;
+    background-color: #0366d6;
+    border-radius: 4px;
+    color: #fff;
   }
 </style>
 '''
@@ -49,7 +61,7 @@ class TestSwaggerExtension(unittest.TestCase):
 
     def test_swagger_include(self):
         md = markdown.Markdown(extensions=[SwaggerExtension(file='test_swagger.json')])
-        text = ':swg: FirstDefinition'
+        text = ':swg-def: FirstDefinition'
         converted = md.convert(text)
         self.assertTrue(converted.startswith('<table '))
 
@@ -63,13 +75,13 @@ class TestSwaggerExtension(unittest.TestCase):
 
     def test_swagger_explicit_file_include(self):
         md = markdown.Markdown(extensions=[SwaggerExtension()])
-        text = ':swg: test_swagger.json FirstDefinition'
+        text = ':swg-def: test_swagger.json FirstDefinition'
         converted = md.convert(text)
         self.assertTrue(converted.startswith('<table '))
 
     def test_data_present(self):
         md = markdown.Markdown(extensions=[SwaggerExtension()])
-        text = ':swg: test_swagger.json FirstDefinition'
+        text = ':swg-def: test_swagger.json FirstDefinition'
         converted = md.convert(text)
         self.assertIn('Some example text', converted)
         self.assertIn('example', converted)
@@ -88,8 +100,8 @@ class TestSwaggerExtension(unittest.TestCase):
     def test_2_definition(self):
         md = markdown.Markdown(extensions=[SwaggerExtension(file='test_swagger.json')])
         text = '''
-:swg: test_swagger.json FirstDefinition
-:swg: SecondDefinition
+:swg-def: test_swagger.json FirstDefinition
+:swg-def: SecondDefinition
 '''
         converted = md.convert(text)
         self.assertIn('Some example text', converted)
@@ -97,7 +109,7 @@ class TestSwaggerExtension(unittest.TestCase):
 
     def test_definitionsUrlRoot(self):
         md = markdown.Markdown(extensions=[SwaggerExtension(definitionsUrlRoot='/types')])
-        text = ':swg: test_swagger.json FirstDefinition'
+        text = ':swg-def: test_swagger.json FirstDefinition'
         converted = md.convert(text)
         self.assertIn('<a href="/types#/definitions/SecondDefinition">SecondDefinition</a>', converted)
 

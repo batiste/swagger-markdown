@@ -16,7 +16,7 @@ import unittest
 from swaggermarkdown import SwaggerExtension
 
 md = markdown.Markdown(extensions=[SwaggerExtension()])
-text = ':swg: test_swagger.json FirstDefinition'
+text = ':swg-def: test_swagger.json FirstDefinition'
 converted = md.convert(text)
 ```
 
@@ -51,11 +51,11 @@ markdown_extensions:
 
 ### My first api definition
 
-:swg: swaggerFile.json FirstDefinition
+:swg-def: swaggerFile.json FirstDefinition
 
 ### Some other definition
 
-:swg: SomeOtherDefinition
+:swg-def: SomeOtherDefinition
 ```
 
 You should get a table similar to this
