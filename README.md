@@ -1,7 +1,10 @@
 # swagger-markdown
 
-A Python Markdown extension to include Swagger definition in your markdown documentation.
-This extension works with Swagger 2.0 JSON files. To install:
+A Python Markdown extension to include Swagger definition and paths in your markdown documentation.
+This extension works with Swagger 2.0 JSON files.
+
+
+To install:
 
 
 ```bash
@@ -47,15 +50,15 @@ markdown_extensions:
 ## How to use in your markdown files
 
 ```markdown
-## My Nice API Response
+## My Pet Api
 
-### My first api definition
+### Endpoint /pet/findByTags
 
-:swg-def: swaggerFile.json FirstDefinition
+:swg-path: /pet/findByTags
 
-### Some other definition
+### Pet definition
 
-:swg-def: SomeOtherDefinition
+:swg-def: Pet
 ```
 
 You should get a table similar to this
