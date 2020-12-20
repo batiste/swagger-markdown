@@ -125,7 +125,13 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Success"
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
           }
         }
       },

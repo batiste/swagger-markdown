@@ -8,7 +8,7 @@ style = '''
     font-size: 16px;
     font-family: sans-serif;
   }
-  .sw-table {
+  [data-type="sw-table"] {
     border-collapse: collapse;
     min-width: 400px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
@@ -18,9 +18,11 @@ style = '''
   td {
       padding: 12px 15px;
   }
+
   tbody tr {
     border-bottom: 1px solid #ddd;
   }
+
   th {
     border-bottom: 2px solid #ccc;
   }
@@ -28,7 +30,8 @@ style = '''
   tbody tr:nth-of-type(even) {
       background-color: #f3f3f3;
   }
-  .sw-table caption {
+
+  caption {
     padding-bottom: 6px;
   }
 
@@ -75,7 +78,7 @@ class TestSwaggerExtension(unittest.TestCase):
         md = markdown.Markdown(extensions=[SwaggerExtension(file='tests/test_swagger.json')])
         with open('tests/test.md', 'r') as md_input:
             html = md.convert(md_input.read())
-            with open("test.html", "w") as out:
+            with open("tests/test.html", "w") as out:
               out.write(style)
               out.write(html)
 
@@ -83,7 +86,7 @@ class TestSwaggerExtension(unittest.TestCase):
         md = markdown.Markdown(extensions=[SwaggerExtension(file='tests/pet_store.json')])
         with open('tests/pet.md', 'r') as md_input:
             html = md.convert(md_input.read())
-            with open("pet.html", "w") as out:
+            with open("tests/pet.html", "w") as out:
               out.write(style)
               out.write(html)
 

@@ -37,11 +37,6 @@ class SwaggerDefinition():
         self.definitionName = None
         self.definitionNames = definitionNames
 
-        self.defaultDetailsField = ['description', 'example', 'maximum', 'minimum',
-            'minItems', 'maxItems', 'uniqueItems', 'exclusiveMinimum', 'minLength',
-            'maxLength', 'multipleOf', 'readOnly', 'writeOnly', 'minProperties', 
-            'maxProperties', 'enum', 'pattern']
-
         self.excludeField = ['type', 'items', 'properties', 'required', '$ref', 'xml', 'format', 'name']
 
     # Typical input
@@ -63,7 +58,8 @@ class SwaggerDefinition():
             return self.definitionTable(definition, self.definitionName)
 
     def table(self, body, id):
-        return f"""<table class="sw-table" id="/definitions/{id}">
+        # some markdown theme disable all style if a class is present
+        return f"""<table data-type="sw-table" id="/definitions/{id}"> 
         <thead><tr><th>Name</th><th>Type</th><th>Details</th></tr></thead>
         <tbody>{body}</tbody>
         </table>
@@ -142,11 +138,6 @@ class SwaggerPath():
 
     def __init__(self, file=None):
         self.defaultFile = file
-        self.defaultDetailsField = ['description', 'example', 'maximum', 'minimum',
-            'minItems', 'maxItems', 'uniqueItems', 'exclusiveMinimum', 'minLength',
-            'maxLength', 'multipleOf', 'readOnly', 'writeOnly', 'minProperties', 
-            'maxProperties', 'in' , 'enum', 'pattern']
-
         self.excludeField = ['type', 'items', 'properties', 'required', '$ref', 'xml', 'schema', 'format', 'name']
 
     # Typical input
@@ -178,29 +169,52 @@ class SwaggerPath():
             parameters = verbDef.get('parameters')
             out.append(self.parameters(parameters))
 
-            responses = verbDef.get('responses')
-            out.append(self.responses(responses))
+            out.append(self.responses(verbDef))
 
         return '\n'.join(out)
 
-    def responses(self, responses):
-        return ''
+    def responses(self, verbDef):
+        responses = verbDef.get('responses')
+        produces = verbDef.get('produces') or []
+        producesStr = ', '.join(produces)
+        if producesStr:
+            producesStr = f'({producesStr})'
+        out = []
+        for name, content in responses.items():
+            out.append(self.response(name, content))
+        body = ''.join(out)
+        return f"""<table data-type="sw-table" id="/paths{self.path}/responses">
+        <caption>Responses {producesStr}</caption>
+        <thead><tr><th>Code</th><th>Description</th><th>Body</th></tr></thead>
+        <tbody>{body}</tbody>
+        </table>
+        """
+
+    def response(self, name, response):
+        description = response.get('description')
+        schema = self.contentType(response) or ''
+        return f'''<tr>
+            <td>{name}</td>
+            <td>{description}</td>
+            <td>{schema}</td>
+        </tr>'''
 
     def parametersTable(self, body):
-        return f"""<table class="sw-table" id="/paths/{self.path}/parameters">
+        return f"""<table data-type="sw-table" id="/paths{self.path}/parameters">
         <caption>Parameters</caption>
         <thead><tr><th>Name</th><th>Type</th><th>Details</th></tr></thead>
         <tbody>{body}</tbody>
         </table>
         """
 
-    def makeContentType(self, parameter):
-        schema = parameter.get('schema')
+    def contentType(self, obj):
+        # obj is a Paramteter or a Response
+        schema = obj.get('schema')
         # seems wrong acording to the spec, but it seems
         # some decide to shove type and format without schema
         # https://swagger.io/docs/specification/describing-parameters/
         if not schema:
-            schema = parameter
+            schema = obj
         t = schema.get('type')
         if t:
             f = schema.get('format')
@@ -229,7 +243,10 @@ class SwaggerPath():
             out.append(f'<strong>{n["name"]}</strong>' if n.get("required") else n["name"])
         return '.'.join(out).replace('.[0]', '[0]')
 
-    def line(self, p, names):
+    def parameter(self, p, names):
+        """
+        Handles one parameter
+        """
         out = []
         name = p.get('name') or ''
 
@@ -239,7 +256,7 @@ class SwaggerPath():
         outName = self.outNames(names)
         out.append(f'''<tr>
             <td>{outName}</td>
-            <td>{self.makeContentType(p)}</td>
+            <td>{self.contentType(p)}</td>
             <td>{self.makeDetails(p)}</td>
         </tr>''')
 
@@ -249,17 +266,17 @@ class SwaggerPath():
         if ctype == 'object':
             props = p.get('properties') or p.get('schema') and p.get('schema').get('properties')
             for key, value in props.items():
-                out.append(self.line(value, names + [{'name': key}]))
+                out.append(self.parameter(value, names + [{'name': key}]))
 
         if ctype == 'array' and items and not items.get('$ref'):
-            out.append(self.line(items, names=names + [{'name': '[0]'}]))
+            out.append(self.parameter(items, names=names + [{'name': '[0]'}]))
 
         return ''.join(out)
 
     def parameters(self, parameters):
         out = []
         for p in parameters:
-            out.append(self.line(p, []))
+            out.append(self.parameter(p, []))
     
         return self.parametersTable(''.join(out))
 
