@@ -19,7 +19,7 @@ import unittest
 from swaggermarkdown import SwaggerExtension
 
 md = markdown.Markdown(extensions=[SwaggerExtension()])
-text = ':swg-def: tess/test_swagger.json FirstDefinition'
+text = ':swg-def: tests/test_swagger.json FirstDefinition'
 converted = md.convert(text)
 ```
 

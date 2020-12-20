@@ -18,15 +18,13 @@ setuptools.setup(
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: Apache License",
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         'Topic :: Communications :: Email :: Filters',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content :: CGI Tools/Libraries',
         'Topic :: Internet :: WWW/HTTP :: Site Management',
         'Topic :: Software Development :: Documentation',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: Software Development :: Libraries :: Swagger',
-        'Topic :: Software Development :: Libraries :: OpenAPI',
         'Topic :: Text Processing :: Filters',
         'Topic :: Text Processing :: Markup :: HTML',
         'Topic :: Text Processing :: Markup :: Markdown'
