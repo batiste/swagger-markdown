@@ -40,11 +40,13 @@ class SwaggerDefinition():
         self.defaultDetailsField = ['description', 'example', 'maximum', 'minimum',
             'minItems', 'maxItems', 'uniqueItems', 'exclusiveMinimum', 'minLength',
             'maxLength', 'multipleOf', 'readOnly', 'writeOnly', 'minProperties', 
-            'maxProperties']
+            'maxProperties', 'enum', 'pattern']
+
+        self.excludeField = ['type', 'items', 'properties', 'required', '$ref', 'xml', 'format', 'name']
 
     # Typical input
-    # :swg-def:  swagger.json AccessibilityProperties
-    # :swg-def:  AccessibilityProperties
+    # :swg-def: swagger.json AccessibilityProperties
+    # :swg-def: AccessibilityProperties
     # :swg-path: /my-project"
     def handleLine(self, line):
         content = line.split(' ')
@@ -77,45 +79,50 @@ class SwaggerDefinition():
 
     def makeDetails(self, content):
         out = []
-        for detail in self.defaultDetailsField:
-            labelValue(out, content, detail)
+        keys = content.keys()
+        for detail in keys:
+            if detail not in self.excludeField:
+                labelValue(out, content, detail)
 
         return '<br>'.join(out)
 
-    def makeContentType(self, content):
+    def typeAndFormat(self, content):
         t = content.get('type')
         if t:
             f = content.get('format')
             if f:
                 return f'{t} {f}'
             return t
-        ref = content.get('$ref')
-        if ref:
-            bits = ref.split('/')
-            name = bits[len(bits) - 1]
-            url = f'{self.definitionsUrl}{ref}'
-            # if the current name is included in the current page, we can ignore definitionsUrl
-            if name in self.definitionNames:
-              url = ref
 
-            return f'<a href="{url}">{name}</a>'
+    def refLink(self, ref):
+        bits = ref.split('/')
+        name = bits[len(bits) - 1]
+        url = f'{self.definitionsUrl}{ref}'
+        # if the current name is included in the current page, we can ignore definitionsUrl
+        if name in self.definitionNames:
+            url = ref
+
+        return f'<a href="{url}">{name}</a>' 
 
     def addTableLine(self, path, body, name, content, required=[]):
-        ctype = self.makeContentType(content)
+        ctype = self.typeAndFormat(content)
         details = self.makeDetails(content)
         ctypeOut = ctype
+
+        # could create issue if the name clash...
+        # TODO: smarter path
+        required = required + content.get('required', [])
 
         items = content.get('items')
 
         if ctype == 'array':
             if items.get('$ref'):
-                ctypeOut = f'array of {self.makeContentType(items)}'
+                ctypeOut = f'array of {self.refLink(items.get("$ref"))}'
             elif items.get('type'):
-                ctypeOut = f'array of {self.makeContentType(items)}'
+                ctypeOut = f'array of {self.typeAndFormat(items)}'
             else:
                 ctypeOut = 'array of object'
 
-        # format
         newPath = path + [name]
         body.append(f'''<tr id="{idRepr(newPath)}">
           <td>{pathRepr(newPath, required)}</td>
@@ -138,7 +145,9 @@ class SwaggerPath():
         self.defaultDetailsField = ['description', 'example', 'maximum', 'minimum',
             'minItems', 'maxItems', 'uniqueItems', 'exclusiveMinimum', 'minLength',
             'maxLength', 'multipleOf', 'readOnly', 'writeOnly', 'minProperties', 
-            'maxProperties', 'in']
+            'maxProperties', 'in' , 'enum', 'pattern']
+
+        self.excludeField = ['type', 'items', 'properties', 'required', '$ref', 'xml', 'schema', 'format', 'name']
 
     # Typical input
     # :swg-path: /my-project"
@@ -162,14 +171,20 @@ class SwaggerPath():
         for verb in verbs:
             out.append(f'''<p class="sw-path">
                 <span class="sw-verb">{verb.upper()}</span>
-                <span class="sw-path">{self.path}</span></p>''')
+                <span class="sw-path-url">{self.path}</span></p>''')
             verbDef = pathDef[verb]
             summary = verbDef.get('summary')
             out.append(f'''<p class="sw-summary">{summary}</p>''')
             parameters = verbDef.get('parameters')
             out.append(self.parameters(parameters))
 
+            responses = verbDef.get('responses')
+            out.append(self.responses(responses))
+
         return '\n'.join(out)
+
+    def responses(self, responses):
+        return ''
 
     def parametersTable(self, body):
         return f"""<table class="sw-table" id="/paths/{self.path}/parameters">
@@ -179,9 +194,13 @@ class SwaggerPath():
         </table>
         """
 
-    def makeContentType(self, schema):
+    def makeContentType(self, parameter):
+        schema = parameter.get('schema')
+        # seems wrong acording to the spec, but it seems
+        # some decide to shove type and format without schema
+        # https://swagger.io/docs/specification/describing-parameters/
         if not schema:
-            return ''
+            schema = parameter
         t = schema.get('type')
         if t:
             f = schema.get('format')
@@ -197,22 +216,50 @@ class SwaggerPath():
 
     def makeDetails(self, content):
         out = []
-        for detail in self.defaultDetailsField:
-            labelValue(out, content, detail)
+        keys = content.keys()
+        for detail in keys:
+            if detail not in self.excludeField:
+                labelValue(out, content, detail)
 
         return '<br>'.join(out)
+
+    def outNames(self, names=[]):
+        out = []
+        for n in names:
+            out.append(f'<strong>{n["name"]}</strong>' if n.get("required") else n["name"])
+        return '.'.join(out).replace('.[0]', '[0]')
+
+    def line(self, p, names):
+        out = []
+        name = p.get('name') or ''
+
+        if name:
+            names.append({ "name": name, "required": p.get('required') })
+
+        outName = self.outNames(names)
+        out.append(f'''<tr>
+            <td>{outName}</td>
+            <td>{self.makeContentType(p)}</td>
+            <td>{self.makeDetails(p)}</td>
+        </tr>''')
+
+        ctype = p.get('type') or p.get('schema', {}).get('type')
+        items = p.get('items')
+
+        if ctype == 'object':
+            props = p.get('properties') or p.get('schema') and p.get('schema').get('properties')
+            for key, value in props.items():
+                out.append(self.line(value, names + [{'name': key}]))
+
+        if ctype == 'array' and items and not items.get('$ref'):
+            out.append(self.line(items, names=names + [{'name': '[0]'}]))
+
+        return ''.join(out)
 
     def parameters(self, parameters):
         out = []
         for p in parameters:
-            name = p.get('name')
-            schema = p.get('schema')
-            outName = f'<strong>{name}</strong>' if p['required'] else name
-            out.append(f'''<tr>
-                <td>{outName}</td>
-                <td>{self.makeContentType(schema)}</td>
-                <td>{self.makeDetails(p)}</td>
-            </tr>''')
+            out.append(self.line(p, []))
     
         return self.parametersTable(''.join(out))
 
@@ -246,7 +293,7 @@ class SwaggerPreprocessor(Preprocessor):
 
 
 class SwaggerExtension(Extension):
-    """Swagger include Extension"""
+    """Swagger Extension"""
 
     def __init__(self, **kwargs):
       self.config = {

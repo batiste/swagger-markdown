@@ -38,11 +38,18 @@ style = '''
     min-width: 80px;
     text-align: right;
   }
+
   .sw-verb {
     padding: 4px 8px;
     background-color: #0366d6;
     border-radius: 4px;
     color: #fff;
+  }
+
+  .sw-path-url {
+      background: #eee;
+      padding: 4px 8px;
+      border-radius: 4px;
   }
 </style>
 '''
@@ -70,6 +77,14 @@ class TestSwaggerExtension(unittest.TestCase):
         with open('test.md', 'r') as md_input:
             html = md.convert(md_input.read())
             with open("test.html", "w") as out:
+              out.write(style)
+              out.write(html)
+
+    def test_generate_pet_file(self):
+        md = markdown.Markdown(extensions=[SwaggerExtension(file='pet_store.json')])
+        with open('pet.md', 'r') as md_input:
+            html = md.convert(md_input.read())
+            with open("pet.html", "w") as out:
               out.write(style)
               out.write(html)
 

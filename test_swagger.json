@@ -19,6 +19,7 @@
           "minimum": 1999,
           "type": "integer",
           "format": "int32",
+          "pattern": "^\\d+$",
           "x-field-name": "fromYear"
         },
         "arrayOfStrings": {
@@ -75,6 +76,34 @@
         "name"
       ],
       "type": "object"
+    },
+    "Friends": {
+      "properties": {
+        "friends": {
+          "items": {
+            "properties": {
+              "uuid": {
+                "example": "123e4567-e89b-12d3-a456-426614174000",
+                "type": "uuid"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "uuid"
+            ],
+            "description": "A friend is composed of an uuid and a name",
+            "type": "object"
+          },
+          "type": "array",
+          "description": "An array of friends"
+        }
+      },
+      "required": [
+        "friends"
+      ],
+      "type": "object"
     }
   },
   "paths": {
@@ -104,8 +133,8 @@
         "summary": "Create a user.",
         "parameters": [
           {
-            "in": "body",
-            "name": "id",
+            "in": "query",
+            "name": "userId",
             "required": true,
             "schema": {
               "type": "string",
@@ -113,14 +142,13 @@
             },
             "description": "Name of the user."
           },
+          
           {
             "in": "body",
             "name": "email",
             "required": false,
-            "schema": {
-              "type": "string",
-              "format": "email"
-            },
+            "type": "string",
+            "format": "email",
             "description": "Email of the user."
           },
           {
@@ -141,6 +169,23 @@
             "name": "friends",
             "required": false,
             "description": "Friends list."
+          },
+          {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "example": 2,
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            },
+            "in": "body",
+            "name": "contributions",
+            "description": "Object list."
           }
         ],
         "responses": {
