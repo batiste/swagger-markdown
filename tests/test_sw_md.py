@@ -1,6 +1,6 @@
 import markdown
 import unittest
-from swaggermarkdown import SwaggerExtension
+from swaggermarkdown.swaggermarkdown import SwaggerExtension
 
 style = '''
 <style>
@@ -60,29 +60,28 @@ class TestSwaggerExtension(unittest.TestCase):
         text = 'some text'
         self.assertEqual('<p>'+text+'</p>', markdown.markdown(text, extensions=['swaggermarkdown']))
     
-
     def test_instanciate_extension_with_file(self):
-        md = markdown.Markdown(extensions=[SwaggerExtension(file='test_swagger.json')])
+        md = markdown.Markdown(extensions=[SwaggerExtension(file='tests/test_swagger.json')])
         text = 'some text'
         self.assertEqual('<p>'+text+'</p>', md.convert(text))
 
     def test_swagger_include(self):
-        md = markdown.Markdown(extensions=[SwaggerExtension(file='test_swagger.json')])
+        md = markdown.Markdown(extensions=[SwaggerExtension(file='tests/test_swagger.json')])
         text = ':swg-def: FirstDefinition'
         converted = md.convert(text)
         self.assertTrue(converted.startswith('<table '))
 
     def test_generate_file(self):
-        md = markdown.Markdown(extensions=[SwaggerExtension(file='test_swagger.json')])
-        with open('test.md', 'r') as md_input:
+        md = markdown.Markdown(extensions=[SwaggerExtension(file='tests/test_swagger.json')])
+        with open('tests/test.md', 'r') as md_input:
             html = md.convert(md_input.read())
             with open("test.html", "w") as out:
               out.write(style)
               out.write(html)
 
     def test_generate_pet_file(self):
-        md = markdown.Markdown(extensions=[SwaggerExtension(file='pet_store.json')])
-        with open('pet.md', 'r') as md_input:
+        md = markdown.Markdown(extensions=[SwaggerExtension(file='tests/pet_store.json')])
+        with open('tests/pet.md', 'r') as md_input:
             html = md.convert(md_input.read())
             with open("pet.html", "w") as out:
               out.write(style)
@@ -90,13 +89,13 @@ class TestSwaggerExtension(unittest.TestCase):
 
     def test_swagger_explicit_file_include(self):
         md = markdown.Markdown(extensions=[SwaggerExtension()])
-        text = ':swg-def: test_swagger.json FirstDefinition'
+        text = ':swg-def: tests/test_swagger.json FirstDefinition'
         converted = md.convert(text)
         self.assertTrue(converted.startswith('<table '))
 
     def test_data_present(self):
         md = markdown.Markdown(extensions=[SwaggerExtension()])
-        text = ':swg-def: test_swagger.json FirstDefinition'
+        text = ':swg-def: tests/test_swagger.json FirstDefinition'
         converted = md.convert(text)
         self.assertIn('Some example text', converted)
         self.assertIn('example', converted)
@@ -113,9 +112,9 @@ class TestSwaggerExtension(unittest.TestCase):
         self.assertIn('arrayOfObject</strong>[0].id', converted)
 
     def test_2_definition(self):
-        md = markdown.Markdown(extensions=[SwaggerExtension(file='test_swagger.json')])
+        md = markdown.Markdown(extensions=[SwaggerExtension(file='tests/test_swagger.json')])
         text = '''
-:swg-def: test_swagger.json FirstDefinition
+:swg-def: tests/test_swagger.json FirstDefinition
 :swg-def: SecondDefinition
 '''
         converted = md.convert(text)
@@ -124,7 +123,7 @@ class TestSwaggerExtension(unittest.TestCase):
 
     def test_definitionsUrlRoot(self):
         md = markdown.Markdown(extensions=[SwaggerExtension(definitionsUrlRoot='/types')])
-        text = ':swg-def: test_swagger.json FirstDefinition'
+        text = ':swg-def: tests/test_swagger.json FirstDefinition'
         converted = md.convert(text)
         self.assertIn('<a href="/types#/definitions/SecondDefinition">SecondDefinition</a>', converted)
 

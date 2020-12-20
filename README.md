@@ -19,7 +19,7 @@ import unittest
 from swaggermarkdown import SwaggerExtension
 
 md = markdown.Markdown(extensions=[SwaggerExtension()])
-text = ':swg-def: test_swagger.json FirstDefinition'
+text = ':swg-def: tess/test_swagger.json FirstDefinition'
 converted = md.convert(text)
 ```
 
@@ -36,7 +36,7 @@ markdown.markdown('some markdown', extensions=['swaggermarkdown']))
 ```python
 SwaggerExtension(
   definitionsUrlRoot='/types',  # add an url in front of definition links
-  file='test_swagger.json'      # redefine the default file (default: swagger.json)
+  file='tests/test_swagger.json'      # redefine the default file (default: swagger.json)
 )
 ```
 
