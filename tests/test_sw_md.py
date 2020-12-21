@@ -83,9 +83,13 @@ class TestSwaggerExtension(unittest.TestCase):
               out.write(html)
 
     def test_generate_pet_file(self):
-        md = markdown.Markdown(extensions=[SwaggerExtension(file='tests/pet_store.json')])
+        md = markdown.Markdown(extensions=[SwaggerExtension(
+          file='tests/pet_store.json',
+          definitionsUrlRoot='/types'
+        )])
         with open('tests/pet.md', 'r') as md_input:
             html = md.convert(md_input.read())
+            self.assertIn('<a href="/types#/definitions/Category">Category</a>', html)
             with open("tests/pet.html", "w") as out:
               out.write(style)
               out.write(html)

@@ -35,8 +35,8 @@ markdown.markdown('some markdown', extensions=['swaggermarkdown']))
 
 ```python
 SwaggerExtension(
-  definitionsUrlRoot='/types',  # add an url in front of definition links
-  file='tests/test_swagger.json'      # redefine the default file (default: swagger.json)
+  definitionsUrlRoot='/types',    # add an url in front of definition links
+  file='tests/test_swagger.json'  # redefine the default file (default: swagger.json)
 )
 ```
 
@@ -63,7 +63,7 @@ markdown_extensions:
 
 You should get a table similar to this
 
- <img src="/swaggermarkdown.png" width="700">
+ <img src="https://github.com/batiste/swagger-markdown/raw/master/swaggermarkdown.png" width="700">
 
 
 

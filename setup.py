@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="swagger-markdown",
-    version="0.9.2",
+    version="0.9.3",
     author="Batiste Bieler",
     author_email="batiste.bieler@gmail.com",
     description="A Python Markdown extension to include Swagger informations in your documentation",

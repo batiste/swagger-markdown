@@ -39,6 +39,10 @@ class SwaggerDefinition():
 
         self.excludeField = ['type', 'items', 'properties', 'required', '$ref', 'xml', 'format', 'name']
 
+    def getDefinitionName(self, line):
+        content = line.split(' ')
+        return content[-1]
+
     # Typical input
     # :swg-def: swagger.json AccessibilityProperties
     # :swg-def: AccessibilityProperties
@@ -49,7 +53,7 @@ class SwaggerDefinition():
         if not file.endswith('.json'):
           file = self.defaultFile
 
-        self.definitionName = content[-1]
+        self.definitionName = self.getDefinitionName(line)
 
         with open(file) as json_file:
             data = json.load(json_file)
@@ -89,6 +93,9 @@ class SwaggerDefinition():
             if f:
                 return f'{t} {f}'
             return t
+        ref = content.get('$ref')
+        if ref:
+            return self.refLink(ref)
 
     def refLink(self, ref):
         bits = ref.split('/')
@@ -136,8 +143,11 @@ class SwaggerDefinition():
 
 class SwaggerPath():
 
-    def __init__(self, file=None):
+    def __init__(self, file=None, definitionsUrl='', definitionNames=[]):
         self.defaultFile = file
+        self.definitionsUrl = definitionsUrl
+        self.definitionNames = definitionNames
+
         self.excludeField = ['type', 'items', 'properties', 'required', '$ref', 'xml', 'schema', 'format', 'name']
 
     # Typical input
@@ -223,10 +233,17 @@ class SwaggerPath():
             return t
         ref = schema.get('$ref')
         if ref:
-            url = f'{ref}'
-            bits = ref.split('/')
-            name = bits[len(bits) - 1]
-            return f'<a href="{url}">{name}</a>'
+            return self.refLink(ref)
+
+    def refLink(self, ref):
+        bits = ref.split('/')
+        name = bits[len(bits) - 1]
+        url = f'{self.definitionsUrl}{ref}'
+        # if the current name is included in the current page, we can ignore definitionsUrl
+        if name in self.definitionNames:
+            url = ref
+
+        return f'<a href="{url}">{name}</a>' 
 
     def makeDetails(self, content):
         out = []
@@ -286,22 +303,31 @@ class SwaggerPreprocessor(Preprocessor):
     def __init__(self, md, file=None, definitionsUrl=''):
         self.defaultFile = file
         self.definitionsUrl = definitionsUrl
-        self.definitionNames = []
         super(SwaggerPreprocessor, self).__init__(md)
 
     def run(self, lines):
         out = []
+
+        # a list of all definition present in this document
+        definitionNames = []
+        for line in lines:
+            if line.startswith(':swg-def: '):
+              definitionNames.append(SwaggerDefinition().getDefinitionName(line))
+
         for line in lines:
             if line.startswith(':swg-def: '):
               handler = SwaggerDefinition(
                 file=self.defaultFile, 
                 definitionsUrl=self.definitionsUrl,
-                definitionNames=self.definitionNames
+                definitionNames=definitionNames
               )
               out = out + handler.handleLine(line).split("\n")
-              self.definitionNames.append(handler.definitionName)
             elif line.startswith(':swg-path: '):
-              handler = SwaggerPath(file=self.defaultFile)
+              handler = SwaggerPath(
+                file=self.defaultFile,
+                definitionsUrl=self.definitionsUrl,
+                definitionNames=definitionNames
+              )
               out = out + handler.handleLine(line).split("\n")
             else:
               out.append(line)

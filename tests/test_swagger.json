@@ -6,7 +6,7 @@
   "definitions": {
     "FirstDefinition": {
       "properties": {
-        "aReference": {
+        "directRef": {
           "$ref": "#/definitions/SecondDefinition"
         },
         "name": {
