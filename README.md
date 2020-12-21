@@ -63,7 +63,7 @@ markdown_extensions:
 
 You should get a table similar to this
 
- <img src="https://github.com/batiste/swagger-markdown/raw/master/swaggermarkdown.png" width="700">
+ <img src="https://raw.githubusercontent.com/batiste/swagger-markdown/main/swaggermarkdown.png" width="700">
 
 
 
