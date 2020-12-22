@@ -77,7 +77,7 @@ class SwaggerDefinition():
             self.addTableLine([defname], body, name, content, required)
         return self.table(body=''.join(body), id=defname)
 
-    def makeDetails(self, content):
+    def details(self, content):
         out = []
         keys = content.keys()
         for detail in keys:
@@ -109,7 +109,7 @@ class SwaggerDefinition():
 
     def addTableLine(self, path, body, name, content, required=[]):
         ctype = self.typeAndFormat(content)
-        details = self.makeDetails(content)
+        details = self.details(content)
         ctypeOut = ctype
 
         # could create issue if the name clash...
@@ -162,8 +162,8 @@ class SwaggerPath():
         self.path = content[-1]
 
         with open(file) as json_file:
-            data = json.load(json_file)
-            pathDef = data['paths'][self.path]
+            self.data = json.load(json_file)
+            pathDef = self.data['paths'][self.path]
             return self.pathRepr(pathDef)
 
     def pathRepr(self, pathDef):
@@ -180,6 +180,8 @@ class SwaggerPath():
             out.append(self.parameters(parameters))
 
             out.append(self.responses(verbDef))
+
+            out.append(self.responsesExamples(verbDef))
 
         return '\n'.join(out)
 
@@ -199,6 +201,24 @@ class SwaggerPath():
         <tbody>{body}</tbody>
         </table>
         """
+
+    def responsesExamples(self, verbDef):
+        responses = verbDef.get('responses')
+        out = []
+        for name, content in responses.items():
+            schema = content.get('schema')
+            if not schema:
+                continue
+            obj = self.responseMap(schema)
+            out.append(f'''
+Response example {name}
+
+```json
+{json.dumps(obj, indent=2)}
+```
+''')
+        return '\n'.join(out)
+
 
     def response(self, name, response):
         description = response.get('description')
@@ -245,7 +265,7 @@ class SwaggerPath():
 
         return f'<a href="{url}">{name}</a>' 
 
-    def makeDetails(self, content):
+    def details(self, content):
         out = []
         keys = content.keys()
         for detail in keys:
@@ -274,7 +294,7 @@ class SwaggerPath():
         out.append(f'''<tr>
             <td>{outName}</td>
             <td>{self.contentType(p)}</td>
-            <td>{self.makeDetails(p)}</td>
+            <td>{self.details(p)}</td>
         </tr>''')
 
         ctype = p.get('type') or p.get('schema', {}).get('type')
@@ -297,6 +317,58 @@ class SwaggerPath():
     
         return self.parametersTable(''.join(out))
 
+    #     "schema":{
+    #         "$ref":"#/definitions/Pet"
+    #     }
+
+    # "schema":{
+    #     "type":"array",
+    #     "items":{
+    #     "$ref":"#/definitions/Pet"
+    #     }
+    # }
+    def getRandomValue(self, content):
+        ctype = content.get('type')
+        example = content.get('example')
+        if example:
+            return example
+        enum = content.get('enum')
+        if enum:
+            return enum[0]
+
+        if ctype == 'integer':
+            return 123
+        elif ctype == 'string':
+            return 'some string'
+        elif ctype == 'boolean':
+            return True
+        
+        return '?'
+
+
+    def responseMap(self, content):
+        name = content.get('name')
+
+        ctype = content.get('type')
+        ref = content.get('$ref')
+
+        if ctype == 'array':
+            items = content.get('items')
+            return [self.responseMap(items)]
+
+        elif ctype == 'object':
+            properties = content.get('properties', {})
+            c = {}
+            for name, content in properties.items():
+                c[name] = self.responseMap(content)
+            return c
+        elif ref:
+            defName = ref.split('#/definitions/')[1]
+            if defName in self.data['definitions']:
+                return self.responseMap(
+                    self.data['definitions'][defName])
+        else:
+            return self.getRandomValue(content)
 class SwaggerPreprocessor(Preprocessor):
     """Swagger include Preprocessor"""
 
