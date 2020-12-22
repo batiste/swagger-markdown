@@ -329,6 +329,7 @@ Response example {name}
     # }
     def getRandomValue(self, content):
         ctype = content.get('type')
+        format = content.get('format')
         example = content.get('example')
         if example:
             return example
@@ -336,14 +337,20 @@ Response example {name}
         if enum:
             return enum[0]
 
-        if ctype == 'integer':
+        if ctype == 'integer' or ctype == 'number':
             return 123
         elif ctype == 'string':
-            return 'some string'
+            if format == 'date':
+                return '2019-07-21'
+            if format == 'date-time':
+                return '2017-07-21T17:32:28Z'
+            if format == 'password':
+                return '*****'
+            return 'lorem ipsum'
         elif ctype == 'boolean':
             return True
         
-        return '?'
+        return ctype
 
 
     def responseMap(self, content):
