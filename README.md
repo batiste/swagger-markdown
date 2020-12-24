@@ -1,11 +1,15 @@
 # swagger-markdown
 
-A Python Markdown extension to include Swagger definition and paths in your markdown documentation.
+A Python Markdown extension to include Swagger Definitions and Paths in your markdown documentation.
 This extension works with Swagger 2.0 JSON files.
+
+For now this extension supports only Definitions and Paths and can do those things:
+
+ * For Definitions it can create description tables.
+ * For Paths it can create parameters table, response tables, and responses examples.
 
 
 To install:
-
 
 ```bash
 pip install swagger-markdown
@@ -19,7 +23,7 @@ import unittest
 from swaggermarkdown import SwaggerExtension
 
 md = markdown.Markdown(extensions=[SwaggerExtension()])
-text = ':swg-def: tests/test_swagger.json FirstDefinition'
+text = ':swg-def: FirstDefinition'
 converted = md.convert(text)
 ```
 
@@ -47,6 +51,14 @@ markdown_extensions:
   - swaggermarkdown
 ```
 
+You have the option to define some configuration for the extension as well here:
+
+```yaml
+markdown_extensions:
+  - swaggermarkdown
+      file: swagger.json
+      definitionsUrlRoot: '/types'
+```
 ## How to use in your markdown files
 
 ```markdown
@@ -65,6 +77,20 @@ You should get a table similar to this
 
  <img src="https://raw.githubusercontent.com/batiste/swagger-markdown/main/swaggermarkdown.png" width="700">
 
+## Extra configuration for paths
+
+You can decide with more precision what you want to show by defining an YAML configuration
+
+```markdown
+:swg-path: /pet/{petId}/uploadImage
+    verbs:
+      - post
+      - get
+    sections:
+      parameters: true
+      responseTables: true
+      responseExamples: true
+```
 
 
 

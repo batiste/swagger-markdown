@@ -6,6 +6,7 @@ Swagger pre-processor
 from markdown import util
 from markdown.preprocessors import Preprocessor
 from markdown.extensions import Extension
+import yaml
 import json
 import re
 
@@ -36,7 +37,6 @@ class SwaggerDefinition():
         self.definitionsUrl = definitionsUrl
         self.definitionName = None
         self.definitionNames = definitionNames
-
         self.excludeField = ['type', 'items', 'properties', 'required', '$ref', 'xml', 'format', 'name']
 
     def getDefinitionName(self, line):
@@ -143,12 +143,21 @@ class SwaggerDefinition():
 
 class SwaggerPath():
 
-    def __init__(self, file=None, definitionsUrl='', definitionNames=[]):
+    def __init__(self, file=None, definitionsUrl='', definitionNames=[], config={}):
         self.defaultFile = file
         self.definitionsUrl = definitionsUrl
         self.definitionNames = definitionNames
 
         self.excludeField = ['type', 'items', 'properties', 'required', '$ref', 'xml', 'schema', 'format', 'name']
+
+        sectionConfig = config.get("sections", {})
+    
+        self.config = {
+            "responseExamples": sectionConfig.get("responseExamples", True),
+            "responseTables": sectionConfig.get("responseTables", True),
+            "parameters": sectionConfig.get("parameters", True),
+            "verbs": config.get("verbs", "all")
+        }
 
     # Typical input
     # :swg-path: /my-project"
@@ -170,6 +179,9 @@ class SwaggerPath():
         out = []
         verbs = pathDef.keys()
         for verb in verbs:
+            if self.config['verbs'] != 'all' and not verb in self.config['verbs']:
+                continue
+
             out.append(f'''<p class="sw-path">
                 <span class="sw-verb">{verb.upper()}</span>
                 <span class="sw-path-url">{self.path}</span></p>''')
@@ -177,11 +189,15 @@ class SwaggerPath():
             summary = verbDef.get('summary')
             out.append(f'''<p class="sw-summary">{summary}</p>''')
             parameters = verbDef.get('parameters')
-            out.append(self.parameters(parameters))
 
-            out.append(self.responses(verbDef))
+            if self.config['parameters']:
+                out.append(self.parameters(parameters))
 
-            out.append(self.responsesExamples(verbDef))
+            if self.config['responseTables']:
+                out.append(self.responses(verbDef))
+
+            if self.config['responseExamples']:
+                out.append(self.responsesExamples(verbDef))
 
         return '\n'.join(out)
 
@@ -317,16 +333,6 @@ Response example {name}
     
         return self.parametersTable(''.join(out))
 
-    #     "schema":{
-    #         "$ref":"#/definitions/Pet"
-    #     }
-
-    # "schema":{
-    #     "type":"array",
-    #     "items":{
-    #     "$ref":"#/definitions/Pet"
-    #     }
-    # }
     def getRandomValue(self, content):
         ctype = content.get('type')
         format = content.get('format')
@@ -351,7 +357,6 @@ Response example {name}
             return True
         
         return ctype
-
 
     def responseMap(self, content):
         name = content.get('name')
@@ -384,6 +389,19 @@ class SwaggerPreprocessor(Preprocessor):
         self.definitionsUrl = definitionsUrl
         super(SwaggerPreprocessor, self).__init__(md)
 
+    def getConfig(self, index, lines):
+        yamlOut = []
+        while index < len(lines):
+            line = lines[index]
+            if line.startswith('    '):
+                yamlOut.append(line[4:])
+                del lines[index]
+            else:
+                break
+        if len(yamlOut):
+            return yaml.load('\n'.join(yamlOut), Loader=yaml.FullLoader)
+        return {}
+
     def run(self, lines):
         out = []
 
@@ -391,23 +409,25 @@ class SwaggerPreprocessor(Preprocessor):
         definitionNames = []
         for line in lines:
             if line.startswith(':swg-def: '):
-              definitionNames.append(SwaggerDefinition().getDefinitionName(line))
+                definitionNames.append(SwaggerDefinition().getDefinitionName(line))
 
-        for line in lines:
+        for index, line in enumerate(lines):
             if line.startswith(':swg-def: '):
-              handler = SwaggerDefinition(
-                file=self.defaultFile, 
-                definitionsUrl=self.definitionsUrl,
-                definitionNames=definitionNames
-              )
-              out = out + handler.handleLine(line).split("\n")
+                handler = SwaggerDefinition(
+                    file=self.defaultFile, 
+                    definitionsUrl=self.definitionsUrl,
+                    definitionNames=definitionNames
+                )
+                out = out + handler.handleLine(line).split("\n")
             elif line.startswith(':swg-path: '):
-              handler = SwaggerPath(
-                file=self.defaultFile,
-                definitionsUrl=self.definitionsUrl,
-                definitionNames=definitionNames
-              )
-              out = out + handler.handleLine(line).split("\n")
+                lineConfig = self.getConfig(index + 1, lines)
+                handler = SwaggerPath(
+                    file=self.defaultFile,
+                    definitionsUrl=self.definitionsUrl,
+                    definitionNames=definitionNames,
+                    config=lineConfig
+                )
+                out = out + handler.handleLine(line).split("\n")
             else:
               out.append(line)
 

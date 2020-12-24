@@ -2,14 +2,26 @@
 # API paths
 
 :swg-path: /pet
+    verbs:
+      - post
+      - get
 
 :swg-path: /pet/{petId}/uploadImage
+    verbs:
+      - post
+      - get
+    sections:
+      parameters: true
+      responseTables: true
+      responseExamples: true
 
 :swg-path: /pet/findByStatus
 
 :swg-path: /pet/findByTags
 
 :swg-path: /pet/{petId}
+    verbs:
+      - delete
 
 :swg-path: /store/order
 
