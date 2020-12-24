@@ -19,7 +19,6 @@ pip install swagger-markdown
 
 ```python
 import markdown
-import unittest
 from swaggermarkdown import SwaggerExtension
 
 md = markdown.Markdown(extensions=[SwaggerExtension()])
@@ -39,7 +38,7 @@ markdown.markdown('some markdown', extensions=['swaggermarkdown']))
 
 ```python
 SwaggerExtension(
-  definitionsUrlRoot='/types',    # add an url in front of definition links
+  definitionsUrlRoot='/types',    # add an url in front of definition links (only if not present in current page)
   file='tests/test_swagger.json'  # redefine the default file (default: swagger.json)
 )
 ```
@@ -79,7 +78,8 @@ You should get a table similar to this
 
 ## Extra configuration for paths
 
-You can decide with more precision what you want to show by defining an YAML configuration
+You can decide with more precision what you want to show by defining a YAML configuration
+for each entrypoint:
 
 ```markdown
 :swg-path: /pet/{petId}/uploadImage
