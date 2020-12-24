@@ -15,6 +15,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         "markdown",
+        "pyyaml",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
