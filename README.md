@@ -6,7 +6,7 @@ This extension works with Swagger 2.0 JSON files.
 For now this extension supports only Definitions and Paths and can do those things:
 
  * For Definitions it can create description tables.
- * For Paths it can create parameters table, response tables, and responses examples.
+ * For Paths it can create request parameters table, request examples, response tables, and responses examples.
 
 
 To install:
