@@ -11,7 +11,7 @@
       - post
       - get
     sections:
-      parameters: true
+      parametersTable: true
       responseTables: true
       responseExamples: true
 
@@ -46,6 +46,11 @@
 ## Pet definition
 
 :swg-def: Pet
+    properties:
+      photoUrls:
+        hide: true
+      id:
+        description: "New description"
 
 ## User definition
 

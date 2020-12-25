@@ -32,12 +32,16 @@ def idRepr(path):
 
 class SwaggerDefinition():
 
-    def __init__(self, file=None, definitionsUrl='', definitionNames=[]):
+    def __init__(self, file=None, definitionsUrl='', definitionNames=[], config={}):
         self.defaultFile = file
         self.definitionsUrl = definitionsUrl
         self.definitionName = None
         self.definitionNames = definitionNames
         self.excludeField = ['type', 'items', 'properties', 'required', '$ref', 'xml', 'format', 'name']
+
+        self.config = {
+            "properties": config.get("properties", {})
+        }
 
     def getDefinitionName(self, line):
         content = line.split(' ')
@@ -69,17 +73,29 @@ class SwaggerDefinition():
         </table>
         """
 
+    def propetyConfig(self, prop, name):
+        config = self.config['properties']
+        if prop in config and name in config[prop]:
+            return config[prop][name]
+        
+
     def definitionTable(self, definition, defname):
         body = []
         required = definition.get('required', [])
         properties = definition.get('properties', {})
         for name, content in properties.items():
+            if self.propetyConfig(name, 'hide') == True:
+                continue
             self.addTableLine([defname], body, name, content, required)
         return self.table(body=''.join(body), id=defname)
 
-    def details(self, content):
+    def details(self, content, name):
         out = []
         keys = content.keys()
+        description = self.propetyConfig(name, 'description')
+        if description:
+            content['description'] = description
+
         for detail in keys:
             if detail not in self.excludeField:
                 labelValue(out, content, detail)
@@ -107,9 +123,9 @@ class SwaggerDefinition():
 
         return f'<a href="{url}">{name}</a>' 
 
-    def addTableLine(self, path, body, name, content, required=[]):
+    def addTableLine(self, path, body: list, name, content, required=[]):
         ctype = self.typeAndFormat(content)
-        details = self.details(content)
+        details = self.details(content, name)
         ctypeOut = ctype
 
         # could create issue if the name clash...
@@ -154,8 +170,9 @@ class SwaggerPath():
     
         self.config = {
             "responseExamples": sectionConfig.get("responseExamples", True),
-            "responseTables": sectionConfig.get("responseTables", True),
-            "parameters": sectionConfig.get("parameters", True),
+            "responseTable": sectionConfig.get("responseTable", True),
+            "requestExamples": sectionConfig.get("requestExamples", True), 
+            "parametersTable": sectionConfig.get("parametersTable", True),
             "verbs": config.get("verbs", "all")
         }
 
@@ -190,14 +207,18 @@ class SwaggerPath():
             out.append(f'''<p class="sw-summary">{summary}</p>''')
             parameters = verbDef.get('parameters')
 
-            if self.config['parameters']:
+            if self.config['parametersTable']:
                 out.append(self.parameters(parameters))
 
-            if self.config['responseTables']:
+            if self.config['requestExamples']:
+                out.append(self.requestExamples(verbDef))
+
+            if self.config['responseTable']:
                 out.append(self.responses(verbDef))
 
             if self.config['responseExamples']:
                 out.append(self.responsesExamples(verbDef))
+
 
         return '\n'.join(out)
 
@@ -234,6 +255,19 @@ Response example {name}
 ```
 ''')
         return '\n'.join(out)
+
+
+    def requestExamples(self, verbDef):
+        obj = self.requestParameters(verbDef)
+        if not len(obj.keys()):
+            return ''
+        return f'''
+Request example
+
+```json
+{json.dumps(obj, indent=2)}
+```
+'''
 
 
     def response(self, name, response):
@@ -333,6 +367,38 @@ Response example {name}
     
         return self.parametersTable(''.join(out))
 
+    def requestParameters(self, verbDef):
+        out = {}
+        for p in verbDef.get('parameters', []):
+            out[p['name']] = self.requestMap(p)
+    
+        return out
+    
+    def requestMap(self, content):
+        name = content.get('name')
+
+        ctype = content.get('type') or content.get('schema', {}).get('type')
+        schema = content.get('schema', {})
+        ref = content.get('$ref') or schema.get('$ref')
+
+        if ctype == 'array':
+            items = content.get('items') or content.get('schema', {}).get('items')
+            return [self.requestMap(items)]
+
+        elif ctype == 'object':
+            properties = content.get('properties', {})
+            c = {}
+            for name, ct in properties.items():
+                c[name] = self.requestMap(ct)
+            return c
+        elif ref:
+            defName = ref.split('#/definitions/')[1]
+            if defName in self.data['definitions']:
+                return self.requestMap(
+                    self.data['definitions'][defName])
+        else:
+            return self.getRandomValue(content)
+
     def getRandomValue(self, content):
         ctype = content.get('type')
         format = content.get('format')
@@ -381,6 +447,7 @@ Response example {name}
                     self.data['definitions'][defName])
         else:
             return self.getRandomValue(content)
+
 class SwaggerPreprocessor(Preprocessor):
     """Swagger include Preprocessor"""
 
@@ -413,10 +480,12 @@ class SwaggerPreprocessor(Preprocessor):
 
         for index, line in enumerate(lines):
             if line.startswith(':swg-def: '):
+                lineConfig = self.getConfig(index + 1, lines)
                 handler = SwaggerDefinition(
                     file=self.defaultFile, 
                     definitionsUrl=self.definitionsUrl,
-                    definitionNames=definitionNames
+                    definitionNames=definitionNames,
+                    config=lineConfig
                 )
                 out = out + handler.handleLine(line).split("\n")
             elif line.startswith(':swg-path: '):

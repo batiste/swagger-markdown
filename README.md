@@ -79,7 +79,7 @@ You should get a table similar to this
 ## Extra configuration for paths
 
 You can decide with more precision what you want to show by defining a YAML configuration
-for each entrypoint:
+for each Path and Definition. The YAML definition must be indented with 4 spaces:
 
 ```markdown
 :swg-path: /pet/{petId}/uploadImage
@@ -87,9 +87,18 @@ for each entrypoint:
       - post
       - get
     sections:
-      parameters: true
-      responseTables: true
+      parametersTable: true
+      requestExamples: true
+      responseTable: true
       responseExamples: true
+
+
+:swg-def: Pet
+    properties:
+      photoUrls:
+        hide: true
+      id:
+        description: "New description"
 ```
 
 
