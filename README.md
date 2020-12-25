@@ -76,7 +76,7 @@ You should get a table similar to this
 
  <img src="https://raw.githubusercontent.com/batiste/swagger-markdown/main/swaggermarkdown.png" width="700">
 
-## Extra configuration for paths
+## Individual configuration for Paths and Definition
 
 You can decide with more precision what you want to show by defining a YAML configuration
 for each Path and Definition. The YAML definition must be indented with 4 spaces:
@@ -100,6 +100,8 @@ for each Path and Definition. The YAML definition must be indented with 4 spaces
       id:
         description: "New description"
 ```
+
+For now only the options presented above are supported
 
 
 
