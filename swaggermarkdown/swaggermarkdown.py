@@ -171,7 +171,8 @@ class SwaggerPath():
         self.config = {
             "responseExamples": sectionConfig.get("responseExamples", True),
             "responseTable": sectionConfig.get("responseTable", True),
-            "requestExamples": sectionConfig.get("requestExamples", True), 
+            "requestExamples": sectionConfig.get("requestExamples", True),
+            "requestCodeExamples": sectionConfig.get("requestCodeExamples", True), 
             "parametersTable": sectionConfig.get("parametersTable", True),
             "verbs": config.get("verbs", "all")
         }
@@ -212,6 +213,9 @@ class SwaggerPath():
 
             if self.config['requestExamples']:
                 out.append(self.requestExamples(verbDef))
+
+            if self.config['requestCodeExamples']:
+                out.append(self.requestCodeExamples(verb, pathDef, verbDef))
 
             if self.config['responseTable']:
                 out.append(self.responses(verbDef))
@@ -269,6 +273,29 @@ Request example
 ```
 '''
 
+    def requestCodeExamples(self, verb, pathDef, verbDef):
+        obj = self.requestParameters(verbDef)
+        if not len(obj.keys()):
+            return ''
+        scheme = self.data.get('schemes', ['https'])[0]
+        host = self.data.get('host', 'example.com')
+        consumes = verbDef.get('consumes', ['application/json'])[0]
+        data = json.dumps(obj, indent=2).replace("\n", "\\\n")
+
+        code = f'''curl {scheme}://{host}{self.path} \\
+--header "Content-Type: {consumes}" \\
+--request {verb.upper()} \\
+--data '{data}'
+'''
+
+        out = f'''
+Request code example
+
+```bash
+{code}
+```
+'''
+        return out
 
     def response(self, name, response):
         description = response.get('description')

@@ -89,6 +89,7 @@ for each Path and Definition. The YAML definition must be indented with 4 spaces
     sections:
       parametersTable: true
       requestExamples: true
+      requestCodeExamples: true
       responseTable: true
       responseExamples: true
 
