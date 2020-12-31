@@ -29,6 +29,14 @@ def pathRepr(path, required):
 def idRepr(path):
     return '.'.join(path)
 
+def isEmpty(objOrArray):
+    if isinstance(objOrArray, list) and not len(objOrArray):
+        return True
+    if isinstance(objOrArray, dict) and not len(objOrArray.keys()):
+        return True
+    if objOrArray is None:
+        return True
+    return False
 
 class SwaggerDefinition():
 
@@ -206,7 +214,7 @@ class SwaggerPath():
             verbDef = pathDef[verb]
             summary = verbDef.get('summary')
             out.append(f'''<p class="sw-summary">{summary}</p>''')
-            parameters = verbDef.get('parameters')
+            parameters = verbDef.get('parameters', [])
 
             if self.config['parametersTable']:
                 out.append(self.parameters(parameters))
@@ -262,25 +270,25 @@ Response example {name}
 
 
     def requestExamples(self, verbDef):
-        obj = self.requestParameters(verbDef)
-        if not len(obj.keys()):
+        objOrArray = self.requestParameters(verbDef)
+        if isEmpty(objOrArray):
             return ''
         return f'''
 Request example
 
 ```json
-{json.dumps(obj, indent=2)}
+{json.dumps(objOrArray, indent=2)}
 ```
 '''
 
     def requestCodeExamples(self, verb, pathDef, verbDef):
-        obj = self.requestParameters(verbDef)
-        if not len(obj.keys()):
+        objOrArray = self.requestParameters(verbDef)
+        if isEmpty(objOrArray):
             return ''
         scheme = self.data.get('schemes', ['https'])[0]
         host = self.data.get('host', 'example.com')
         consumes = verbDef.get('consumes', ['application/json'])[0]
-        data = json.dumps(obj, indent=2).replace("\n", "\\\n")
+        data = json.dumps(objOrArray, indent=2).replace("\n", "\\\n")
 
         code = f'''curl {scheme}://{host}{self.path} \\
 --header "Content-Type: {consumes}" \\
@@ -322,12 +330,20 @@ Request code example
         # https://swagger.io/docs/specification/describing-parameters/
         if not schema:
             schema = obj
-        t = schema.get('type')
-        if t:
+        ctype = schema.get('type')
+
+        items = schema.get('items')
+        if ctype == 'array' and items:
+            if schema.get('$ref'):
+                return f'array of {self.refLink(items.get("$ref"))}'
+            else:
+                return f'array of {self.contentType(items)}'
+
+        if ctype:
             f = schema.get('format')
             if f:
-                return f'{t} {f}'
-            return t
+                return f'{ctype} {f}'
+            return ctype
         ref = schema.get('$ref')
         if ref:
             return self.refLink(ref)
@@ -364,8 +380,15 @@ Request code example
         out = []
         name = p.get('name') or ''
 
-        if name:
-            names.append({ "name": name, "required": p.get('required') })
+        where = p.get('in', '')
+        schema = p.get('schema')
+
+        if where == 'body' and schema:
+            pass
+            # names.append({ "name": "-", "required": p.get('required') })
+        else:
+            if name:
+                names.append({ "name": name, "required": p.get('required') })
 
         outName = self.outNames(names)
         out.append(f'''<tr>
@@ -390,6 +413,8 @@ Request code example
     def parameters(self, parameters):
         out = []
         for p in parameters:
+            where = p.get('in', '')
+            schema = p.get('schema')
             out.append(self.parameter(p, []))
     
         return self.parametersTable(''.join(out))
@@ -397,7 +422,15 @@ Request code example
     def requestParameters(self, verbDef):
         out = {}
         for p in verbDef.get('parameters', []):
-            out[p['name']] = self.requestMap(p)
+            where = p.get('in', '')
+            schema = p.get('schema')
+            if where == 'body':
+                if schema:
+                    out = self.requestMap(schema)
+                else:
+                    out[p['name']] = self.requestMap(p)
+            else:
+                pass
     
         return out
     

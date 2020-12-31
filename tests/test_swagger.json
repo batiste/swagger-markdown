@@ -151,47 +151,49 @@
           
           {
             "in": "body",
-            "name": "email",
-            "required": false,
-            "type": "string",
-            "format": "email",
-            "description": "Email of the user."
-          },
-          {
-            "in": "body",
-            "name": "password",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "password"
-            },
-            "description": "Password of the user."
-          },
-          {
-            "schema": {
-              "$ref": "#/definitions/Friends"
-            },
-            "in": "body",
-            "name": "friends",
-            "required": false,
-            "description": "Friends list."
-          },
-          {
+            "name": "user",
+            "description": "The user description.",
             "schema": {
               "type": "object",
               "properties": {
-                "id": {
-                  "example": 2,
-                  "type": "integer"
-                },
                 "name": {
-                  "type": "string"
+                  "required": false,
+                  "type": "string",
+                  "format": "email",
+                  "description": "Email of the user."
+                },
+                "password": {
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "format": "password"
+                  },
+                  "description": "Password of the user."
+                },
+                "friends": {
+                  "schema": {
+                    "$ref": "#/definitions/Friends"
+                  },
+                  "required": false,
+                  "description": "Friends list."
+                },
+                "contributions": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "example": 2,
+                        "type": "integer"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "description": "Object list."
                 }
               }
-            },
-            "in": "body",
-            "name": "contributions",
-            "description": "Object list."
+            }
           }
         ],
         "responses": {
