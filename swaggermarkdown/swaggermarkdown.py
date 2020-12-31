@@ -290,7 +290,7 @@ Request example
         consumes = verbDef.get('consumes', ['application/json'])[0]
         data = json.dumps(objOrArray, indent=2).replace("\n", "\\\n")
 
-        code = f'''curl {scheme}://{host}{self.path} \\
+        code = f'''curl -i {scheme}://{host}{self.path} \\
 --header "Content-Type: {consumes}" \\
 --request {verb.upper()} \\
 --data '{data}'
