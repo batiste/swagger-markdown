@@ -288,14 +288,12 @@ Request example
         scheme = self.data.get('schemes', ['https'])[0]
         host = self.data.get('host', 'example.com')
         consumes = verbDef.get('consumes', ['application/json'])[0]
-        data = json.dumps(objOrArray, indent=2)
+        data = json.dumps(objOrArray, indent=2).replace("\n", "\\\n")
 
         code = f'''curl {scheme}://{host}{self.path} \\
 --header "Content-Type: {consumes}" \\
 --request {verb.upper()} \\
---data @- &lt;&lt;'EOF'
-{data}
-EOF
+--data '{data}'
 '''
 
         out = f'''
