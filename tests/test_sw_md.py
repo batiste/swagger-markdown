@@ -100,7 +100,7 @@ class TestSwaggerExtension(unittest.TestCase):
         converted = md.convert(text)
         self.assertTrue(converted.startswith('<table '))
 
-    def test_data_present(self):
+    def test_definition_data(self):
         md = markdown.Markdown(extensions=[SwaggerExtension()])
         text = ':swg-def: tests/test_swagger.json FirstDefinition'
         converted = md.convert(text)
@@ -117,8 +117,16 @@ class TestSwaggerExtension(unittest.TestCase):
         self.assertIn('<a href="#/definitions/SecondDefinition">SecondDefinition</a>', converted)
         self.assertIn('integer int32', converted)
         self.assertIn('arrayOfObject</strong>[0].id', converted)
+        self.assertIn('array of <a href="#/definitions/SecondDefinition">SecondDefinition', converted)
 
-    def test_2_definition(self):
+    def test_path_data(self):
+        md = markdown.Markdown(extensions=[SwaggerExtension()])
+        text = ':swg-path: tests/test_swagger.json /my-project'
+        converted = md.convert(text)
+        self.assertIn('<td>array of <a href="#/definitions/Friends">Friends</a></td>', converted)
+        self.assertIn('curl -i https://example.com/my-project', converted)
+
+    def test_second_definition(self):
         md = markdown.Markdown(extensions=[SwaggerExtension(file='tests/test_swagger.json')])
         text = '''
 :swg-def: tests/test_swagger.json FirstDefinition

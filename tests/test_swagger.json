@@ -204,15 +204,31 @@
       }
     },
     "/my-project": {
+      "put": {
+        "operationId": "my_projects.put_projects",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "put_request",
+            "required": true,
+            "schema":{
+              "type":"array",
+              "items":{
+                "$ref":"#/definitions/Friends"
+              }
+            }
+          }
+        ]
+      },
       "post": {
-        "operationId": "my_projects.search_projects",
+        "operationId": "my_projects.create_projects",
         "parameters": [
           {
             "in": "body",
             "name": "my_projects_request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/MyProjectsRequest"
+              "$ref": "#/definitions/Friends"
             }
           }
         ],
@@ -220,7 +236,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/MyProjectsResponse"
+              "$ref": "#/definitions/Friends"
             }
           },
           "400": {

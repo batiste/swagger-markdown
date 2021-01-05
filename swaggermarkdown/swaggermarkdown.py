@@ -236,8 +236,11 @@ class SwaggerPath():
 
     def responses(self, verbDef):
         responses = verbDef.get('responses')
-        produces = verbDef.get('produces') or []
+        produces = verbDef.get('produces', [])
         producesStr = ', '.join(produces)
+        if not responses:
+            return ''
+
         if producesStr:
             producesStr = f'({producesStr})'
         out = []
@@ -254,11 +257,15 @@ class SwaggerPath():
     def responsesExamples(self, verbDef):
         responses = verbDef.get('responses')
         out = []
+        if not responses:
+            return ''
         for name, content in responses.items():
             schema = content.get('schema')
             if not schema:
                 continue
             obj = self.responseMap(schema)
+            if obj is None:
+                continue
             out.append(f'''
 Response example {name}
 
