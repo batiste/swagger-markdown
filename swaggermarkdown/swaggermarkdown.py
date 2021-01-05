@@ -9,6 +9,7 @@ from markdown.extensions import Extension
 import yaml
 import json
 import re
+import uuid
 
 
 def labelValue(out, content, label):
@@ -465,6 +466,9 @@ Request code example
             return self.getRandomValue(content)
 
     def getRandomValue(self, content):
+        schema = content.get('schema')
+        if schema:
+            content = schema
         ctype = content.get('type')
         format = content.get('format')
         example = content.get('example')
@@ -483,6 +487,10 @@ Request code example
                 return '2017-07-21T17:32:28Z'
             if format == 'password':
                 return '*****'
+            if format == 'email':
+                return 'example@example.com'
+            if format == 'uuid':
+                return str(uuid.uuid4())
             return 'lorem ipsum'
         elif ctype == 'boolean':
             return True
