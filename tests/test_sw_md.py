@@ -119,6 +119,13 @@ class TestSwaggerExtension(unittest.TestCase):
         self.assertIn('arrayOfObject</strong>[0].id', converted)
         self.assertIn('array of <a href="#/definitions/SecondDefinition">SecondDefinition', converted)
 
+    def test_enum_definition(self):
+        md = markdown.Markdown(extensions=[SwaggerExtension()])
+        text = ':swg-def: tests/test_swagger.json Enum'
+        converted = md.convert(text)
+        self.assertIn('enum1', converted)
+        self.assertIn('Enum description', converted)
+
     def test_path_data(self):
         md = markdown.Markdown(extensions=[SwaggerExtension()])
         text = ':swg-path: tests/test_swagger.json /my-project'

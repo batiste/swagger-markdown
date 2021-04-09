@@ -104,6 +104,16 @@
         "friends"
       ],
       "type": "object"
+    },
+    "Enum": {
+      "description": "Enum description",
+      "enum": [
+        "enum1",
+        "enum2",
+        "enum3"
+      ],
+      "example": "enum2",
+      "type": "string"
     }
   },
   "paths": {

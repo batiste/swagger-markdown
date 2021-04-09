@@ -19,3 +19,7 @@
 
 :swg-def: SecondDefinition
 
+## Enum
+
+:swg-def: Enum
+

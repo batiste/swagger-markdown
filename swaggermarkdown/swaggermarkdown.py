@@ -89,6 +89,9 @@ class SwaggerDefinition():
         
 
     def definitionTable(self, definition, defname):
+        if not definition.get('properties'):
+            return self.simpleDefinition(definition, defname)
+
         body = []
         required = definition.get('required', [])
         properties = definition.get('properties', {})
@@ -97,6 +100,17 @@ class SwaggerDefinition():
                 continue
             self.addTableLine([defname], body, name, content, required)
         return self.table(body=''.join(body), id=defname)
+
+    def simpleDefinition(self, definition, defname):
+        details = self.details(definition, defname)
+        ctype = self.typeAndFormat(definition)
+        body = f"""<tr><td>{defname}</td><td>{ctype}</td><td>{details}</td></tr>"""
+
+        return f"""<table data-type="sw-table" id="/definitions/{defname}"> 
+        <thead><tr><th>Name</th><th>Type</th><th>Details</th></tr></thead>
+        <tbody>{body}</tbody>
+        </table>
+        """
 
     def details(self, content, name):
         out = []
