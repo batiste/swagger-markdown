@@ -54,7 +54,7 @@ You have the option to define some configuration for the extension as well here:
 
 ```yaml
 markdown_extensions:
-  - swaggermarkdown
+  - swaggermarkdown:
       file: swagger.json
       definitionsUrlRoot: '/types'
 ```
