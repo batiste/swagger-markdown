@@ -23,3 +23,7 @@
 
 :swg-def: Enum
 
+## ArrayOfFriends
+
+:swg-def: ArrayOfFriends
+

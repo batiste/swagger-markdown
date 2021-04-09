@@ -126,6 +126,12 @@ class TestSwaggerExtension(unittest.TestCase):
         self.assertIn('enum1', converted)
         self.assertIn('Enum description', converted)
 
+    def test_array_definition(self):
+        md = markdown.Markdown(extensions=[SwaggerExtension()])
+        text = ':swg-def: tests/test_swagger.json ArrayOfFriends'
+        converted = md.convert(text)
+        self.assertIn('array of <a href="#/definitions/Friends">', converted)
+
     def test_path_data(self):
         md = markdown.Markdown(extensions=[SwaggerExtension()])
         text = ':swg-path: tests/test_swagger.json /my-project'

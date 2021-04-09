@@ -114,6 +114,12 @@
       ],
       "example": "enum2",
       "type": "string"
+    },
+    "ArrayOfFriends": {
+      "items": {
+        "$ref": "#/definitions/Friends"
+      },
+      "type": "array"
     }
   },
   "paths": {
