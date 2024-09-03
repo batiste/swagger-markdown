@@ -591,11 +591,11 @@ class SwaggerExtension(Extension):
       }
       super(SwaggerExtension, self).__init__(**kwargs)
 
-    def extendMarkdown(self, md, md_globals):
+    def extendMarkdown(self, md):
         file = self.getConfig('file')
         definitionsUrl = self.getConfig('definitionsUrlRoot')
-        md.preprocessors.add('swaggerinclude', 
-          SwaggerPreprocessor(md, file=file, definitionsUrl=definitionsUrl), '_begin')
+        md.preprocessors.register(SwaggerPreprocessor(md, file=file,
+            definitionsUrl=definitionsUrl), 'swaggerinclude', 100)
 
 
 def makeExtension(*args, **kwargs):
